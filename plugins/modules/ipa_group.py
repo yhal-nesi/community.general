@@ -164,7 +164,7 @@ class GroupIPAClient(IPAClient):
     def group_add_member_user(self, name, item):
         return self.group_add_member(name=name, item={'user': item})
 
-    def group_add_external_user(self, name, item):
+    def group_add_member_externaluser(self, name, item):
         return self.group_add_member(name=name, item={'ipaexternalmember': item})
 
     def group_remove_member(self, name, item):
@@ -176,7 +176,7 @@ class GroupIPAClient(IPAClient):
     def group_remove_member_user(self, name, item):
         return self.group_remove_member(name=name, item={'user': item})
     
-    def group_remove_external_user(self, name, item):
+    def group_remove_member_externaluser(self, name, item):
         return self.group_remove_member(name=name, item={'ipaexternalmember': item})
 
 
@@ -214,12 +214,18 @@ def ensure(module, client):
     name = module.params['cn']
     group = module.params['group']
     user = module.params['user']
+    external = module.params['external']
     external_user = module.params['external_user']
     append = module.params['append']
 
-    module_group = get_group_dict(description=module.params['description'], external=module.params['external'],
-                                  gid=module.params['gidnumber'], nonposix=module.params['nonposix'])
+    module_group = get_group_dict(description=module.params['description'],
+                                  external=external,
+                                  gid=module.params['gidnumber'],
+                                  nonposix=module.params['nonposix'])
     ipa_group = client.group_find(name=name)
+
+    if (not (external or external_user is None)):
+        module.fail_json("external_user can only be set if external = True")
 
     changed = False
     if state == 'present':
@@ -252,8 +258,8 @@ def ensure(module, client):
         if external_user is not None:
             changed = client.modify_if_diff(name,
                 ipa_group.get('ipaexternalmember', []), external_user,
-                                            client.group_add_external_user,
-                                            client.group_remove_external_user,
+                                            client.group_remove_member_externaluser,
+                                            client.group_remove_member_externaluser,
                                             append=append) or changed                                    
     else:
         if ipa_group:
