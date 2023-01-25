@@ -258,7 +258,7 @@ def ensure(module, client):
         if external_user is not None:
             changed = client.modify_if_diff(name,
                 ipa_group.get('ipaexternalmember', []), external_user,
-                                            client.group_remove_member_externaluser,
+                                            client.group_add_member_externaluser,
                                             client.group_remove_member_externaluser,
                                             append=append) or changed                                    
     else:
