@@ -165,7 +165,7 @@ class GroupIPAClient(IPAClient):
         return self.group_add_member(name=name, item={'user': item})
 
     def group_add_external_user(self, name, item):
-        return self.group_add_member(name=name, item={'ipaexternaluser': item})
+        return self.group_add_member(name=name, item={'ipaexternalmember': item})
 
     def group_remove_member(self, name, item):
         return self._post_json(method='group_remove_member', name=name, item=item)
@@ -177,7 +177,7 @@ class GroupIPAClient(IPAClient):
         return self.group_remove_member(name=name, item={'user': item})
     
     def group_remove_external_user(self, name, item):
-        return self.group_remove_member(name=name, item={'ipaexternaluser': item})
+        return self.group_remove_member(name=name, item={'ipaexternalmember': item})
 
 
 def get_group_dict(description=None, external=None, gid=None, nonposix=None):
