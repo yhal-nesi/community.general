@@ -164,6 +164,9 @@ class GroupIPAClient(IPAClient):
     def group_add_member_user(self, name, item):
         return self.group_add_member(name=name, item={'user': item})
 
+    def group_add_external_user(self, name, item):
+        return self.group_add_member(name=name, item={'ipaexternaluser': item})
+
     def group_remove_member(self, name, item):
         return self._post_json(method='group_remove_member', name=name, item=item)
 
@@ -172,6 +175,9 @@ class GroupIPAClient(IPAClient):
 
     def group_remove_member_user(self, name, item):
         return self.group_remove_member(name=name, item={'user': item})
+    
+    def group_remove_external_user(self, name, item):
+        return self.group_remove_member(name=name, item={'ipaexternaluser': item})
 
 
 def get_group_dict(description=None, external=None, gid=None, nonposix=None):
@@ -208,6 +214,7 @@ def ensure(module, client):
     name = module.params['cn']
     group = module.params['group']
     user = module.params['user']
+    external_user = module.params['external_user']
     append = module.params['append']
 
     module_group = get_group_dict(description=module.params['description'], external=module.params['external'],
@@ -242,6 +249,12 @@ def ensure(module, client):
                                             client.group_remove_member_user,
                                             append=append) or changed
 
+        if external_user is not None:
+            changed = client.modify_if_diff(name, 
+                ipa_group.get('ipaexternalmember', []), user,
+                                            client.group_add_external_user,
+                                            client.group_remove_external_user,
+                                            append=append) or changed                                    
     else:
         if ipa_group:
             changed = True
@@ -256,6 +269,7 @@ def main():
     argument_spec.update(cn=dict(type='str', required=True, aliases=['name']),
                          description=dict(type='str'),
                          external=dict(type='bool'),
+                         external_user=dict(type='list', elements='str'),
                          gidnumber=dict(type='str', aliases=['gid']),
                          group=dict(type='list', elements='str'),
                          nonposix=dict(type='bool'),
