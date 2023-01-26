@@ -64,6 +64,14 @@ options:
     - If option is omitted assigned users will not be checked or changed.
     type: list
     elements: str
+  external_user:
+    description:
+    - List of external users assigned to this group
+    - Behaves identically to I(user) with respect to I(append) attribute
+    - List entries can be in DOMAIN\username format but unless SIDs are provided, this module will always attempt to make changes even if the group already has all the users. This is because only SIDs are returned by IPA query.
+    - I(external=true) is needed for this option to work.
+    type: list
+    elements: str   
   state:
     description:
     - State to ensure
@@ -115,6 +123,28 @@ EXAMPLES = r'''
     ipa_host: ipa.example.com
     ipa_user: admin
     ipa_pass: topsecret
+
+- name: Add external user to a group
+  community.general.ipa_group:
+   name: developers
+   external: true
+   append: true
+   external_user:
+   - S-1-5-21-123-1234-12345-63421
+   ipa_host: ipa.example.com
+   ipa_user: admin
+   ipa_pass: topsecret
+
+- name: Add a user from MYDOMAIN
+  community.general.ipa_group:
+   name: developers
+   external: true
+   append: true
+   external_user:
+   - MYDOMAIN\john
+   ipa_host: ipa.example.com
+   ipa_user: admin
+   ipa_pass: topsecret
 
 - name: Ensure group is absent
   community.general.ipa_group:
